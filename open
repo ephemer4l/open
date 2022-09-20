@@ -1,0 +1,24 @@
+#!/bin/sh
+
+f=$1
+
+ext=${f##*.}
+
+if [[ $ext == "m4a" ]]; then
+	setsid -f foot mpv "$f" >/dev/null 2>&1
+	exit 0
+elif [[ $ext == "cbz" ]] || [[ $ext == "cbr" ]] ; then
+	setsid -f zathura "$f" >/dev/null 2>&1
+	exit 0
+fi
+
+case $(file --mime-type "$f" -b) in
+	image/vnd.djvu|application/vnd*|application/pdf|application/octet-stream|application/postscript|application/epub*) setsid -f zathura "$f" >/dev/null 2>&1 ;;
+	text/*|application/json|inode/x-empty) $EDITOR "$f";;
+	image/*) setsid -f imv "$f" ;;
+	audio/*) setsid -f foot mpv "$f" >/dev/null 2>&1 ;;
+	video/*) setsid -f mpv -quiet "$f" >/dev/null 2>&1 ;;
+	application/pgp-encrypted) $EDITOR "$f" ;;
+	application/x-sc) sc-im "$f" ;;
+	*) notify-send "I dont know how to open that!" ;;
+esac
